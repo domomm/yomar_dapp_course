@@ -3,6 +3,7 @@ package staff;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 import hotel.BookingDetail;
@@ -16,16 +17,35 @@ public class BookingClient extends AbstractScriptedSimpleTest {
 	public static void main(String[] args) throws Exception {
 		Registry registry = LocateRegistry.getRegistry();
 		BookingManagerInterface bm = (BookingManagerInterface) registry.lookup("BookingManager");
-		Set<Integer> availableRooms = bm.getAvailableRooms(LocalDate.now());
+		LocalDate date = LocalDate.of(2024, 3, 3);
+		Set<Integer> availableRooms = bm.getAvailableRooms(date);
 		for (int roomNumber : availableRooms){
 			System.out.println(roomNumber);
 		}
-
-		LocalDate date = LocalDate.of(2024, 3, 3);
-		BookingDetail bookingDetail = new BookingDetail("Omar", 101, date);
-		bm.addBooking(bookingDetail);
-
+		try {
+			BookingDetail bd = new BookingDetail("omar", 101, date);
+			bm.addBooking(bd);
+		} catch (Exception e) {
+			// Handle any exception
+			System.err.println("An error occurred: " + e.getMessage());
+			// Optionally, you can also log the exception or take any other necessary actions
+		}
 		System.out.println(bm.isRoomAvailable(101, date));
+		try {
+			BookingDetail bd = new BookingDetail("omar", 101, date);
+			bm.addBooking(bd);
+		} catch (Exception e) {
+			// Handle any exception
+			System.err.println("An error occurred: " + e.getMessage());
+			// Optionally, you can also log the exception or take any other necessary actions
+		}
+		System.out.println(bm.isRoomAvailable(101, date));
+		Set<Integer> currentAvRoom = bm.getAvailableRooms(date);
+		System.out.println("Currently available rooms");
+		for (int roomNumber : currentAvRoom){
+			System.out.printf("%d ", roomNumber);
+		}
+		System.out.printf("%n");
 	}
 
 	/***************
