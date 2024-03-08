@@ -1,0 +1,8 @@
+/home/yeskaomar/Documents/distributed_applications/git/dsgt2-rest/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/domain/MealsRepository.java
+/home/yeskaomar/Documents/distributed_applications/git/dsgt2-rest/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/exceptions/MealNotFoundAdvice.java
+/home/yeskaomar/Documents/distributed_applications/git/dsgt2-rest/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/FoodRestServiceApplication.java
+/home/yeskaomar/Documents/distributed_applications/git/dsgt2-rest/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/controllers/MealsRestController.java
+/home/yeskaomar/Documents/distributed_applications/git/dsgt2-rest/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/exceptions/MealNotFoundException.java
+/home/yeskaomar/Documents/distributed_applications/git/dsgt2-rest/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/controllers/MealsRestRpcStyleController.java
+/home/yeskaomar/Documents/distributed_applications/git/dsgt2-rest/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/domain/Meal.java
+/home/yeskaomar/Documents/distributed_applications/git/dsgt2-rest/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/domain/MealType.java
