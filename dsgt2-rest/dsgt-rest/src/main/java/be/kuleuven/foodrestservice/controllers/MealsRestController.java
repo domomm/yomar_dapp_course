@@ -66,7 +66,7 @@ public class MealsRestController {
                 linkTo(methodOn(MealsRestController.class).getMeals()).withRel("rest/meals"));
     }
 
-    @PostMapping("/rest/meals")
+    @PostMapping("/rest/addMeal")
     public ResponseEntity<EntityModel<Meal>> addMeal(@RequestBody Meal meal) {
         if (meal.getId() == null || !isValidUUID(meal.getId())) {
             String uuid = UUID.randomUUID().toString();
@@ -81,31 +81,37 @@ public class MealsRestController {
     }
 
     @PutMapping("/rest/updateMeal/{id}")
-    public ResponseEntity<EntityModel<String>> updateMeal(@PathVariable String id, @RequestBody Meal meal) {
+    public ResponseEntity<EntityModel<Meal>> updateMeal(@PathVariable String id, @RequestBody Meal meal) {
         if (mealsRepository.findMeal(id).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(EntityModel.of("Meal with ID " + id + " not found."));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
         meal.setId(id);
         mealsRepository.updateMeal(meal);
 
-        EntityModel<String> responseModel = EntityModel.of("Meal updated successfully with ID: " + id);
+        EntityModel<Meal> responseModel = mealToEntityModel(id, meal);
         //responseModel.add(WebMvcLinkBuilder.linkTo(MealsRestRpcStyleController.class).slash("rest/meals/" + meal.getId()).withSelfRel());
 
         return ResponseEntity.status(HttpStatus.OK).body(responseModel);
     }
 
     @DeleteMapping("/rest/deleteMeal/{id}")
-    public ResponseEntity<EntityModel<String>> deleteMeal(@PathVariable String id) {
+    public ResponseEntity<CollectionModel<EntityModel<Meal>>> deleteMeal(@PathVariable String id) {
         if (mealsRepository.findMeal(id).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(EntityModel.of("Meal with ID " + id + " not found."));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
         mealsRepository.deleteMeal(id);
+        Collection<Meal> meals = mealsRepository.getAllMeal();
 
-        EntityModel<String> responseModel = EntityModel.of("Meal deleted successfully with ID: " + id);
+        List<EntityModel<Meal>> mealEntityModels = new ArrayList<>();
+        for (Meal m : meals) {
+            EntityModel<Meal> em = mealToEntityModel(m.getId(), m);
+            mealEntityModels.add(em);
+        }
 
-        return ResponseEntity.status(HttpStatus.OK).body(responseModel);
+        return ResponseEntity.status(HttpStatus.OK).body(CollectionModel.of(mealEntityModels,
+                linkTo(methodOn(MealsRestController.class).getMeals()).withSelfRel()));
     }
 
     private boolean isValidUUID(String id) {
