@@ -1,0 +1,28 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                  xmlns:gs="http://foodmenu.io/gt/webservice">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <gs:getAddOrderRequest>
+            <gs:order>
+                <gs:address>Address 2</gs:address>
+                <gs:id>-1</gs:id>
+                <gs:meals>
+                    <gs:meal>
+                        <gs:name>Portobello</gs:name>
+                        <gs:kcal>1</gs:kcal>
+                        <gs:price>1</gs:price>
+                        <gs:description>Nice</gs:description>
+                        <gs:mealtype>veggie</gs:mealtype>
+                    </gs:meal>
+                    <gs:meal>
+                        <gs:name>Other Meal</gs:name>
+                        <gs:kcal>1</gs:kcal>
+                        <gs:price>1</gs:price>
+                        <gs:description>Nice</gs:description>
+                        <gs:mealtype>veggie</gs:mealtype>
+                    </gs:meal>
+                </gs:meals>
+            </gs:order>
+        </gs:getAddOrderRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
