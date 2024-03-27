@@ -23,55 +23,71 @@
        Please DO NOT CHANGE any code below this line.
 	******************************************************** -->
 
-  <target name="init" >
-	<delete dir="${build}" quiet="true"/>
-    <mkdir dir="${build}"/>
-	<delete dir="${dist}" quiet="true"/>
-    <mkdir dir="${build}"/>
-  </target>
+	<target name="init" >
+		<delete dir="${build}" quiet="true"/>
+		<mkdir dir="${build}"/>
+		<delete dir="${dist}" quiet="true"/>
+		<mkdir dir="${build}"/>
+	</target>
 
-  <target name="compile" depends="init">
-    <javac includeantruntime="false" srcdir="${src}" destdir="${build}"/>
-  </target>
-  
-  <target name="registry.start">
-	<exec spawn="true" executable="rmiregistry" dir="${build}"/>
-	<sleep milliseconds="5000"/>
-  </target>
+	<target name="compile" depends="init">
+		<javac includeantruntime="false" srcdir="${src}" destdir="${build}"/>
+		<jar destfile="${build}/rmi-server.jar"
+			 basedir="${build}"
+			 excludes="${build}/staff"
+			>
+			<manifest>
+				<attribute name="Main-Class" value="hotel.Server"/>
+			</manifest>
+		</jar>
+		<jar destfile="${build}/rmi-client.jar"
+			 basedir="${build}"
+			 excludes="${build}/hotel"
+			>
+			<manifest>
+				<attribute name="Main-Class" value="staff.BookingClient"/>
+			</manifest>
+		</jar>
+	</target>
 
-  <target name="registry.stop">
-	<exec osfamily="windows" executable="taskkill">
-	  <arg value="/IM"/>
-	  <arg value="rmiregistry.exe"/>
-	  <arg value="/F"/>
-	</exec>
-	<exec osfamily="unix" executable="killall">
-		<arg value="rmiregistry"/>
-	</exec>
-  </target>
-    
-  <target name="run.serveronly">
-	<java fork="true" classname="${main.server}">	
-		<classpath refid="cp" />
-	</java>
-  </target>
+	<target name="registry.start">
+		<exec spawn="true" executable="rmiregistry" dir="${build}"/>
+		<sleep milliseconds="5000"/>
+	</target>
 
-  <target name="run.clientonly">
-	<java classname="${main.client}">	
-		<classpath refid="cp" />
-	</java>
-  </target>
+	<target name="registry.stop">
+		<exec osfamily="windows" executable="taskkill">
+		  <arg value="/IM"/>
+		  <arg value="rmiregistry.exe"/>
+		  <arg value="/F"/>
+		</exec>
+		<exec osfamily="unix" executable="killall">
+			<arg value="rmiregistry"/>
+		</exec>
+	</target>
 
-  <target name="run.both">
-	<java classname="${main.server}">	
-		<classpath refid="cp" />
-	</java>
-	<java classname="${main.client}">	
-		<classpath refid="cp" />
-	</java>
-  </target>
-  
-  <target name="zip">
+	<target name="run.serveronly">
+		<java fork="true" classname="${main.server}">
+			<classpath refid="cp" />
+		</java>
+	</target>
+
+	<target name="run.clientonly">
+		<java classname="${main.client}">
+			<classpath refid="cp" />
+		</java>
+	</target>
+
+	<target name="run.both">
+		<java classname="${main.server}">
+			<classpath refid="cp" />
+		</java>
+		<java classname="${main.client}">
+			<classpath refid="cp" />
+		</java>
+	</target>
+
+	<target name="zip">
 		<delete file="${zip.filename}.zip" quiet="true"/>
 		<zip destfile="${zip.filename}.zip" update="false">
 			<zipfileset dir=".">
@@ -81,7 +97,7 @@
 			</zipfileset>
 			<zipfileset dir="src" prefix="src"/>
 		</zip>
-  </target>
+	</target>
   
   <target name="run" depends="compile,registry.start,run.both,registry.stop"/>
   <target name="run-wo-compile" depends="registry.start,run.both,registry.stop" />

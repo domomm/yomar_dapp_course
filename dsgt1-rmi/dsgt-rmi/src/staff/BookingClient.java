@@ -15,7 +15,7 @@ public class BookingClient extends AbstractScriptedSimpleTest {
 	private BookingManager bm = null;
 
 	public static void main(String[] args) throws Exception {
-		Registry registry = LocateRegistry.getRegistry();
+		Registry registry = LocateRegistry.getRegistry("localhost", 1099);
 		BookingManagerInterface bm = (BookingManagerInterface) registry.lookup("BookingManager");
 		LocalDate date = LocalDate.of(2024, 3, 3);
 		Set<Integer> availableRooms = bm.getAvailableRooms(date);
