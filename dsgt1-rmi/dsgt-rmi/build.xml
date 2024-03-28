@@ -30,7 +30,7 @@
 		<mkdir dir="${build}"/>
 	</target>
 
-	<target name="compile" depends="init">
+	<target name="compileall" depends="init">
 		<javac includeantruntime="false" srcdir="${src}" destdir="${build}"/>
 		<jar destfile="${build}/rmi-server.jar"
 			 basedir="${build}"
@@ -44,6 +44,30 @@
 			 basedir="${build}"
 			 excludes="${build}/hotel"
 			>
+			<manifest>
+				<attribute name="Main-Class" value="staff.BookingClient"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="compileserver">
+		<javac includeantruntime="false" srcdir="${src}/hotel" destdir="${build}/hotel"/>
+		<jar destfile="${build}/rmi-server.jar"
+			 basedir="${build}"
+			 excludes="${build}/staff"
+		>
+			<manifest>
+				<attribute name="Main-Class" value="hotel.Server"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="compileclient">
+		<javac includeantruntime="false" srcdir="${src}/staff" destdir="${build}/staff"/>
+		<jar destfile="${build}/rmi-client.jar"
+			 basedir="${build}"
+			 excludes="${build}/hotel"
+		>
 			<manifest>
 				<attribute name="Main-Class" value="staff.BookingClient"/>
 			</manifest>
@@ -99,6 +123,6 @@
 		</zip>
 	</target>
   
-  <target name="run" depends="compile,registry.start,run.both,registry.stop"/>
+  <target name="run" depends="compileall,registry.start,run.both,registry.stop"/>
   <target name="run-wo-compile" depends="registry.start,run.both,registry.stop" />
 </project>
