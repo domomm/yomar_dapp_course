@@ -1,25 +1,71 @@
 package staff;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import hotel.BookingDetail;
 import hotel.BookingManager;
 import hotel.BookingManagerInterface;
 
-public class BookingClient extends AbstractScriptedSimpleTest {
-
-	private BookingManager bm = null;
+public class BookingClient {
+	private static final int NUM_THREADS = 1000; // Change this to the desired number of threads
 
 	public static void main(String[] args) throws Exception {
+		CountDownLatch latch = new CountDownLatch(NUM_THREADS);
+		ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
+		long startTime = System.currentTimeMillis();
+
+		for (int i = 0; i < NUM_THREADS; i++) {
+			executor.submit(() -> {
+				try {
+					latch.countDown(); // Signal that this thread has started
+					latch.await(); // Wait for all threads to start
+					long threadStartTime = System.currentTimeMillis();
+					performTask();
+					long threadEndTime = System.currentTimeMillis();
+					writeToFile(Thread.currentThread().getId(), threadEndTime - threadStartTime);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+		}
+
+		executor.shutdown();
+		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+
+		long endTime = System.currentTimeMillis();
+		System.out.println("Total time taken: " + (endTime - startTime) + " milliseconds");
+	}
+
+	private static void performTask() throws Exception {
 		//Registry registry = LocateRegistry.getRegistry("localhost", 8083);
 		Registry registry = LocateRegistry.getRegistry("13.75.158.120", 8083);
 		BookingManagerInterface bm = (BookingManagerInterface) registry.lookup("BookingManager");
 		LocalDate date = LocalDate.of(2024, 3, 3);
 		Set<Integer> availableRooms = bm.getAvailableRooms(date);
+		System.out.println("Thread " + Thread.currentThread().getId() + ": Available rooms in date " + date.toString() + " are: " + availableRooms.toString());
+	}
+
+	private static synchronized void writeToFile(long threadId, long duration) {
+		try (FileWriter writer = new FileWriter("output.csv", true)) {
+			writer.append(threadId + "," + duration + "\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void testBmFunctionalities(Set<Integer> availableRooms, LocalDate date, BookingManagerInterface bm) throws RemoteException {
 		for (int roomNumber : availableRooms){
 			System.out.println(roomNumber);
 		}
@@ -49,37 +95,4 @@ public class BookingClient extends AbstractScriptedSimpleTest {
 		System.out.printf("%n");
 	}
 
-	/***************
-	 * CONSTRUCTOR *
-	 ***************/
-	public BookingClient() {
-		try {
-			//Look up the registered remote instance
-			bm = new BookingManager();
-		} catch (Exception exp) {
-			exp.printStackTrace();
-		}
-	}
-
-	@Override
-	public boolean isRoomAvailable(Integer roomNumber, LocalDate date) {
-		//Implement this method
-		return true;
-	}
-
-	@Override
-	public void addBooking(BookingDetail bookingDetail) throws Exception {
-		//Implement this method
-	}
-
-	@Override
-	public Set<Integer> getAvailableRooms(LocalDate date) {
-		//Implement this method
-		return null;
-	}
-
-	@Override
-	public Set<Integer> getAllRooms() {
-		return bm.getAllRooms();
-	}
 }

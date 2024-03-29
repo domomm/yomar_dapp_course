@@ -75,6 +75,7 @@ public class BookingManager implements BookingManagerInterface {
 
 	public Set<Integer> getAvailableRooms(LocalDate date) {
 		//implement this method
+		System.out.println("There is a call to get available rooms for date " + date.toString());
 		Set<Integer> retRooms = new TreeSet<>();
 		for (Room room: rooms){
 			if (isRoomAvailable(room.getRoomNumber(), date)){
