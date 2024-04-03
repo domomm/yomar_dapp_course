@@ -17,10 +17,10 @@ import hotel.BookingDetail;
 import hotel.BookingManagerInterface;
 
 public class BookingClient {
-	private static final int NUM_THREADS = 10;
+	private static final int NUM_THREADS = 1500;
 	private static BookingManagerInterface bm;
-	private static final String OUTPUT_FILE = "output-test-2.csv";
-	private static final int DURATION = 10;
+	private static final String OUTPUT_FILE = "output-1500thr-2min-timeout.csv";
+	private static final int DURATION = 120;
 	private static final int TIMEOUT = 60;
 
 	public static void main(String[] args) throws Exception {
