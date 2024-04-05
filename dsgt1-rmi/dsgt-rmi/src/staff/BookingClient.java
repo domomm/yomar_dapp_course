@@ -2,14 +2,11 @@ package staff;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -17,9 +14,9 @@ import hotel.BookingDetail;
 import hotel.BookingManagerInterface;
 
 public class BookingClient {
-	private static final int NUM_THREADS = 1500;
+	private static final int NUM_THREADS = 4000;
 	private static BookingManagerInterface bm;
-	private static final String OUTPUT_FILE = "output-1500thr-2min-timeout.csv";
+	private static final String OUTPUT_FILE = "output-swi/output-4000thr-2min-timeout.csv";
 	private static final int DURATION = 120;
 	private static final int TIMEOUT = 60;
 
@@ -37,7 +34,7 @@ public class BookingClient {
 					latch.countDown(); // Signal that this thread has started
 					latch.await(); // Wait for all threads to start
 					//performTask(1000);
-					performTaskDuration(DURATION, TIMEOUT); //timeout is optional
+					performTaskDuration(DURATION, startTime, TIMEOUT); //timeout is optional
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -57,11 +54,12 @@ public class BookingClient {
 
 	private static void initializeBookingManager() throws Exception {
 		//Registry registry = LocateRegistry.getRegistry("localhost", 8083);
-		Registry registry = LocateRegistry.getRegistry("13.75.158.120", 8083);
+		//Registry registry = LocateRegistry.getRegistry("13.75.158.120", 8083); //AUS
+		Registry registry = LocateRegistry.getRegistry("20.250.163.126", 8083); //SWITZERLAND
 		bm = (BookingManagerInterface) registry.lookup("BookingManager");
 	}
 
-	private static void performTask(int numIterations) {
+	private static void performTask(int numIterations, long processStartTime) {
 		LocalDate date = LocalDate.of(2024, 3, 3);
 		for (int i = 0; i < numIterations; i++) {
 			try {
@@ -70,15 +68,15 @@ public class BookingClient {
 				long threadEndTime = System.currentTimeMillis();
 				long duration = threadEndTime - threadStartTime;
 				System.out.println("Thread " + Thread.currentThread().getId() + ": Iteration " + (i + 1) + " - Available rooms in date " + date.toString() + " are: " + availableRooms.toString());
-				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), duration);
+				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), duration, processStartTime, i);
 			} catch (Exception e) {
 				System.out.println("ERROR in iteration " + i +" of thread " + Thread.currentThread().getId());
-				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), -1);
+				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), -1, processStartTime, i);
 			}
 		}
 	}
 
-	private static void performTaskDuration(long durationInSeconds, int timeout) {
+	private static void performTaskDuration(long durationInSeconds, long processStartTime, int timeout) {
 		LocalDate date = LocalDate.of(2024, 3, 3);
 		long startTime = System.currentTimeMillis();
 		long endTime = startTime + (durationInSeconds * 1000); // Convert seconds to milliseconds
@@ -88,7 +86,7 @@ public class BookingClient {
 
 		while (System.currentTimeMillis() < endTime) {
 			try {
-				long threadStartTime = System.currentTimeMillis();
+				long taskStartTime = System.currentTimeMillis();
 				Callable<Set<Integer>> task = () -> bm.getAvailableRooms(date);
 				Future<Set<Integer>> future = executor.submit(task);
 
@@ -98,27 +96,29 @@ public class BookingClient {
 				} catch (TimeoutException e) {
 					future.cancel(true); // Cancel the task
 					System.out.println("ERROR Thread " + Thread.currentThread().getId() + ": Timeout of " + timeout+ " seconds occurred while fetching available rooms");
-					writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), -2);
+					writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), -2, processStartTime, iteration);
+					iteration++;
 					continue; // Go to next iteration
 				}
 
-				long threadEndTime = System.currentTimeMillis();
-				long threadDuration = threadEndTime - threadStartTime;
+				long taskEndTime = System.currentTimeMillis();
+				long taskDuration = taskEndTime - taskStartTime;
 
 				System.out.println("Thread " + Thread.currentThread().getId() + ": Iteration " + iteration + " - Available rooms in date " + date.toString() + " are: " + availableRooms.toString());
-				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), threadDuration);
+				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), taskDuration, processStartTime, iteration);
 
 				iteration++;
 			} catch (Exception e) {
 				System.out.println("ERROR in iteration " + iteration + " of thread " + Thread.currentThread().getId());
-				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), -1);
+				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), -1, processStartTime, iteration);
+				iteration++;
 			}
 		}
 
 		executor.shutdown();
 	}
 
-	private static void performTaskDuration(long durationInSeconds) {
+	private static void performTaskDuration(long durationInSeconds, long processStartTime) {
 		LocalDate date = LocalDate.of(2024, 3, 3);
 		long startTime = System.currentTimeMillis();
 		long endTime = startTime + (durationInSeconds * 1000); // Convert seconds to milliseconds
@@ -132,17 +132,19 @@ public class BookingClient {
 				long threadDuration = threadEndTime - threadStartTime;
 
 				System.out.println("Thread " + Thread.currentThread().getId() + ": Iteration " + iteration + " - Available rooms in date " + date.toString() + " are: " + availableRooms.toString());
-				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), threadDuration);
+				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), threadDuration, processStartTime, iteration);
 
 				iteration++;
 			} catch (Exception e) {
 				System.out.println("ERROR in iteration " + iteration + " of thread " + Thread.currentThread().getId());
-				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), -1);
+				writeToFile(OUTPUT_FILE, Thread.currentThread().getId(), -1, processStartTime, iteration);
+				iteration++;
 			}
 		}
 	}
-	private static synchronized void writeToFile(String fileName, long threadId, long duration) {
+	private static synchronized void writeToFile(String fileName, long threadId, long duration, long startTime, int iteration) {
 		try (FileWriter writer = new FileWriter(fileName, true)) {
+			long endTime = System.currentTimeMillis() - startTime;
 			writer.append(threadId + "," + duration + "\n");
 		} catch (IOException e) {
 			System.out.println("ERROR writing file");
@@ -161,7 +163,7 @@ public class BookingClient {
 
 	private static void initWriteToFile(String fileName){
 		try (FileWriter writer = new FileWriter(fileName, false)) {
-			writer.append("threadId" + "," + "duration" + "\n");
+			writer.append("threadId,duration\n");
 		} catch (IOException e) {
 			System.out.println("ERROR init writing file");
 			e.printStackTrace();
