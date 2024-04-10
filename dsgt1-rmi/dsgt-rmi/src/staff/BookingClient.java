@@ -14,9 +14,9 @@ import hotel.BookingDetail;
 import hotel.BookingManagerInterface;
 
 public class BookingClient {
-	private static final int NUM_THREADS = 4000;
+	private static final int NUM_THREADS = 1000;
 	private static BookingManagerInterface bm;
-	private static final String OUTPUT_FILE = "output-swi/output-4000thr-2min-timeout.csv";
+	private static final String OUTPUT_FILE = "output-rmi-to-swi/output-1000thr-2min-timeout.csv";
 	private static final int DURATION = 120;
 	private static final int TIMEOUT = 60;
 
