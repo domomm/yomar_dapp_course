@@ -1,8 +1,11 @@
-be/kuleuven/foodrestservice/controllers/orders/OrderItem.class
-be/kuleuven/foodrestservice/exceptions/FailedDecreasingQuantityException.class
-be/kuleuven/foodrestservice/VegetableRestServiceApplication.class
 be/kuleuven/foodrestservice/controllers/orders/OrderRequest.class
 be/kuleuven/foodrestservice/exceptions/VegetableNotFoundException.class
 be/kuleuven/foodrestservice/domain/Vegetable.class
+be/kuleuven/foodrestservice/controllers/security/ApiKeyAuthentication.class
+be/kuleuven/foodrestservice/controllers/security/ApiKeyAuthenticationFilter.class
+be/kuleuven/foodrestservice/controllers/orders/OrderItem.class
+be/kuleuven/foodrestservice/exceptions/FailedDecreasingQuantityException.class
+be/kuleuven/foodrestservice/VegetableRestServiceApplication.class
+be/kuleuven/foodrestservice/controllers/security/SecurityConfig.class
 be/kuleuven/foodrestservice/controllers/VegetableRestController.class
 be/kuleuven/foodrestservice/domain/VegetableRepository.class
