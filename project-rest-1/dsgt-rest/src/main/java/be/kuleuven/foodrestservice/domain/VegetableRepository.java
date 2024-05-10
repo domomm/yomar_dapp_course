@@ -1,5 +1,6 @@
 package be.kuleuven.foodrestservice.domain;
 
+import be.kuleuven.foodrestservice.controllers.VegetableRestController;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -11,38 +12,40 @@ public class VegetableRepository {
         private static final Map<Integer, Vegetable> vegetables = new HashMap<>();
 
         @PostConstruct
-        public void initData() {
-            /*
-            Vegetable celery = new Vegetable(1, "Celery", 1.5, 10);
-            vegetables.put(celery.getId(), celery);
+        public void initData() throws Exception {
+            if (VegetableRestController.API_OPENING_STRING == "/vegetables"){
+                Vegetable celery = new Vegetable(1, "Celery", 1.5, 10);
+                vegetables.put(celery.getId(), celery);
 
-            Vegetable spinach = new Vegetable(2, "Spinach", 2, 10);
-            vegetables.put(spinach.getId(), spinach);
+                Vegetable spinach = new Vegetable(2, "Spinach", 2, 10);
+                vegetables.put(spinach.getId(), spinach);
 
-            Vegetable bokchoy = new Vegetable(3, "Bokchoy", 2.5, 10);
-            vegetables.put(bokchoy.getId(), bokchoy);
+                Vegetable bokchoy = new Vegetable(3, "Bokchoy", 2.5, 10);
+                vegetables.put(bokchoy.getId(), bokchoy);
 
-            Vegetable rice = new Vegetable(4, "Rice", 1, 15);
-            vegetables.put(rice.getId(), rice);
+                Vegetable rice = new Vegetable(4, "Rice", 1, 15);
+                vegetables.put(rice.getId(), rice);
 
-            Vegetable corn = new Vegetable(5, "Corn", 1, 20);
-            vegetables.put(corn.getId(), corn);
-            */
+                Vegetable corn = new Vegetable(5, "Corn", 1, 20);
+                vegetables.put(corn.getId(), corn);
+            } else if (VegetableRestController.API_OPENING_STRING == "/animalprods"){
+                Vegetable beef = new Vegetable(1, "beef", 1.5, 10);
+                vegetables.put(beef.getId(), beef);
 
-            Vegetable beef = new Vegetable(1, "beef", 1.5, 10);
-            vegetables.put(beef.getId(), beef);
+                Vegetable chicken = new Vegetable(2, "chicken", 2, 10);
+                vegetables.put(chicken.getId(), chicken);
 
-            Vegetable chicken = new Vegetable(2, "chicken", 2, 10);
-            vegetables.put(chicken.getId(), chicken);
+                Vegetable cheese = new Vegetable(3, "cheese", 2.5, 10);
+                vegetables.put(cheese.getId(), cheese);
 
-            Vegetable cheese = new Vegetable(3, "cheese", 2.5, 10);
-            vegetables.put(cheese.getId(), cheese);
+                Vegetable milk = new Vegetable(4, "milk", 1, 15);
+                vegetables.put(milk.getId(), milk);
 
-            Vegetable milk = new Vegetable(4, "milk", 1, 15);
-            vegetables.put(milk.getId(), milk);
-
-            Vegetable fish = new Vegetable(5, "fish", 1, 20);
-            vegetables.put(fish.getId(), fish);
+                Vegetable fish = new Vegetable(5, "fish", 1, 20);
+                vegetables.put(fish.getId(), fish);
+            } else {
+                throw new Exception("Api opening string is not set correctly");
+            }
         }
 
         public Optional<Vegetable> findVegetable(int id) {

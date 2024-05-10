@@ -22,45 +22,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 public class VegetableRestController {
 
     private final VegetableRepository vegetableRepository;
+    public static final String API_OPENING_STRING = "/vegetables";
 
     @Autowired
-    VegetableRestController(VegetableRepository vegetableRepository) {
+    VegetableRestController(VegetableRepository vegetableRepository) throws Exception {
         this.vegetableRepository = vegetableRepository;
     }
-    /*
-    @GetMapping("/vegetables/{id}")
-    EntityModel<Vegetable> getVegetableById(@PathVariable int id) {
-        Vegetable veg = vegetableRepository.findVegetable(id).orElseThrow(() -> new VegetableNotFoundException(id));
 
-        return vegetableToEntityModel(id, veg);
-    }
-
-    @GetMapping("/vegetables")
-    CollectionModel<EntityModel<Vegetable>> getVegetables() {
-
-        Collection<Vegetable> vegetables = vegetableRepository.getAllVegetables();
-        List<EntityModel<Vegetable>> vegetableEntityModels = new ArrayList<>();
-
-        for (Vegetable v : vegetables) {
-            EntityModel<Vegetable> em = vegetableToEntityModel(v.getId(), v);
-            vegetableEntityModels.add(em);
-        }
-        return CollectionModel.of(vegetableEntityModels,
-                linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel());
-    }
-
-    @GetMapping("/vegetables/decreaseQuantity/{id}/{quantity}")
-    EntityModel<Vegetable> decreaseQuantityOfVegetableOfId(@PathVariable int id, @PathVariable int quantity) {
-        //Vegetable veg = vegetableRepository.findVegetable(id).orElseThrow(() -> new VegetableNotFoundException(id));
-        Optional<Vegetable> vegOptional = vegetableRepository.decreaseQuantity(id, quantity);
-        Vegetable veg = vegOptional.orElseThrow(()-> new FailedDecreasingQuantityException(id, quantity));
-        EntityModel<Vegetable> em = vegetableToEntityModel(id, veg);
-        return em;
-    }
-
-     */
-
-    @GetMapping("/animalprods/{id}")
+    @GetMapping(API_OPENING_STRING+"/{id}")
     ResponseEntity<?> getVegetableById(@PathVariable int id) {
         try {
             Vegetable veg = vegetableRepository.findVegetable(id).orElseThrow(() -> new VegetableNotFoundException(id));
@@ -70,7 +39,7 @@ public class VegetableRestController {
         }
     }
 
-    @GetMapping("/animalprods")
+    @GetMapping(API_OPENING_STRING)
     CollectionModel<EntityModel<Vegetable>> getVegetables() {
 
         Collection<Vegetable> vegetables = vegetableRepository.getAllVegetables();
@@ -84,7 +53,7 @@ public class VegetableRestController {
                 linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel());
     }
 
-    @GetMapping("/animalprods/decreaseQuantity/{id}/{quantity}")
+    @GetMapping(API_OPENING_STRING+"/decreaseQuantity/{id}/{quantity}")
     ResponseEntity<?> decreaseQuantityOfVegetableOfId(@PathVariable int id, @PathVariable int quantity) {
         try {
             //Vegetable veg = vegetableRepository.findVegetable(id).orElseThrow(() -> new VegetableNotFoundException(id));
@@ -98,7 +67,7 @@ public class VegetableRestController {
 
     }
 
-    @PostMapping("/animalprods/order")
+    @PostMapping(API_OPENING_STRING+"/order")
     public ResponseEntity<?> orderVegetables(@RequestBody OrderRequest orderRequest) {
         List<OrderItem> orders = orderRequest.getOrders();
         List<EntityModel<Vegetable>> vegetableEntityModels = new ArrayList<>();
