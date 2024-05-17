@@ -22,7 +22,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 public class VegetableRestController {
 
     private final VegetableRepository vegetableRepository;
-    public static final String API_OPENING_STRING = "/vegetables";
+    public static final String API_OPENING_STRING = "/animalprods";
+    private final Link orderLink = linkTo(methodOn(VegetableRestController.class).orderVegetables(null))
+            .withSelfRel()
+            .withType("POST")
+            .withTitle("To order")
+            .withMedia("JSON");
 
     @Autowired
     VegetableRestController(VegetableRepository vegetableRepository) throws Exception {
@@ -50,7 +55,12 @@ public class VegetableRestController {
             vegetableEntityModels.add(em);
         }
         return CollectionModel.of(vegetableEntityModels,
-                linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel());
+                linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel(),
+                linkTo(methodOn(VegetableRestController.class).orderVegetables(null))
+                        .withSelfRel()
+                        .withType("POST")
+                        .withTitle("To order")
+                        .withMedia("JSON"));
     }
 
     @GetMapping(API_OPENING_STRING+"/decreaseQuantity/{id}/{quantity}")
@@ -95,7 +105,12 @@ public class VegetableRestController {
             }
 
             return ResponseEntity.ok().body(CollectionModel.of(vegetableEntityModels,
-                    linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel()));
+                    linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel(),
+                    linkTo(methodOn(VegetableRestController.class).orderVegetables(null))
+                            .withSelfRel()
+                            .withType("POST")
+                            .withTitle("To order")
+                            .withMedia("JSON")));
         } catch (VegetableNotFoundException | FailedDecreasingQuantityException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An exception occured: " + e.getMessage());
         } catch (Exception e) {
@@ -107,10 +122,7 @@ public class VegetableRestController {
     private EntityModel<Vegetable> vegetableToEntityModel(int id, Vegetable veg) {
         return EntityModel.of(veg,
                 linkTo(methodOn(VegetableRestController.class).getVegetableById(id)).withSelfRel(),
-                linkTo(methodOn(VegetableRestController.class).getVegetables()).withRel("vegetables"),
-                Link.of("vegetables/decreaseQuantity/"+id+"/{quantity}")
-                        .withType("GET") // Specify the HTTP method
-                        .withTitle("Decrease quantity"));
+                linkTo(methodOn(VegetableRestController.class).getVegetables()).withRel("vegetables"));
     }
 
 }
