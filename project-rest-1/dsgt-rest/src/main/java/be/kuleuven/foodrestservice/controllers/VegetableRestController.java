@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
+import java.net.URI;
 import java.util.*;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
@@ -22,7 +23,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 public class VegetableRestController {
 
     private final VegetableRepository vegetableRepository;
-    public static final String API_OPENING_STRING = "/animalprods";
+    public static final String API_OPENING_STRING = "/generalstore";
     private final Link orderLink = linkTo(methodOn(VegetableRestController.class).orderVegetables(null))
             .withSelfRel()
             .withType("POST")
@@ -116,6 +117,51 @@ public class VegetableRestController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Another error occurred: " + e.getMessage());
         }
+    }
+
+    @PostMapping(API_OPENING_STRING+"/addProduct")
+    public ResponseEntity<EntityModel<Vegetable>> addProduct(@RequestBody Vegetable product) {
+        
+        product.setId(vegetableRepository.generateId());
+
+        Vegetable addedProduct = vegetableRepository.addVegetable(product);
+
+        EntityModel<Vegetable> entityModel = vegetableToEntityModel(addedProduct.getId(), addedProduct);
+
+        return ResponseEntity.ok().body(entityModel);
+    }
+
+    @PutMapping(API_OPENING_STRING+"/updateProduct/{id}")
+    public ResponseEntity<EntityModel<Vegetable>> updateProduct(@PathVariable int id, @RequestBody Vegetable product) {
+        if (vegetableRepository.findVegetable(id).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        vegetableRepository.addVegetable(product);
+
+        EntityModel<Vegetable> responseModel = vegetableToEntityModel(id, product);
+        //responseModel.add(WebMvcLinkBuilder.linkTo(MealsRestRpcStyleController.class).slash("rest/meals/" + meal.getId()).withSelfRel());
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseModel);
+    }
+
+    @DeleteMapping(API_OPENING_STRING+"/deleteProduct/{id}")
+    public ResponseEntity<CollectionModel<EntityModel<Vegetable>>> deleteProduct(@PathVariable int id) {
+        if (vegetableRepository.findVegetable(id).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        
+        vegetableRepository.deleteProduct(id);
+        Collection<Vegetable> vegs = vegetableRepository.getAllVegetables();
+        List<EntityModel<Vegetable>> vegEntityModels = new ArrayList<>();
+        for (Vegetable v : vegs) {
+            EntityModel<Vegetable> em = vegetableToEntityModel(v.getId(), v);
+            vegEntityModels.add(em);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(CollectionModel.of(vegEntityModels,
+                linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel()));
     }
 
 
