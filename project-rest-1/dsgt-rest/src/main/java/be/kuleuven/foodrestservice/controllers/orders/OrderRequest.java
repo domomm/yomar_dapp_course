@@ -7,6 +7,11 @@ import java.util.Set;
 
 public class OrderRequest {
     private List<OrderItem> orders;
+    private int orderRequestId;
+
+    public int getOrderRequestId() {
+        return orderRequestId;
+    }
 
     public List<OrderItem> getOrders() {
         return orders;

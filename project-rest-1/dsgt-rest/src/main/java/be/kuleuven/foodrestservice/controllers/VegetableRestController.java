@@ -5,6 +5,7 @@ import be.kuleuven.foodrestservice.controllers.orders.OrderRequest;
 import be.kuleuven.foodrestservice.domain.Vegetable;
 import be.kuleuven.foodrestservice.domain.VegetableRepository;
 import be.kuleuven.foodrestservice.exceptions.FailedDecreasingQuantityException;
+import be.kuleuven.foodrestservice.exceptions.MissingBrokerHeaderException;
 import be.kuleuven.foodrestservice.exceptions.VegetableNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -23,8 +24,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 public class VegetableRestController {
 
     private final VegetableRepository vegetableRepository;
-    public static final String API_OPENING_STRING = "/generalstore";
-    private final Link orderLink = linkTo(methodOn(VegetableRestController.class).orderVegetables(null))
+    public static final String API_OPENING_STRING = "/animalprods";
+    private final Link orderLink = linkTo(methodOn(VegetableRestController.class).orderVegetables(null, null))
             .withSelfRel()
             .withType("POST")
             .withTitle("To order")
@@ -57,7 +58,7 @@ public class VegetableRestController {
         }
         return CollectionModel.of(vegetableEntityModels,
                 linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel(),
-                linkTo(methodOn(VegetableRestController.class).orderVegetables(null))
+                linkTo(methodOn(VegetableRestController.class).orderVegetables(null, null))
                         .withSelfRel()
                         .withType("POST")
                         .withTitle("To order")
@@ -78,12 +79,33 @@ public class VegetableRestController {
 
     }
 
+    private void addQuantity(int id, String broker) throws Exception {
+        String combinedId = broker + "/" + id;
+        OrderRequest orderRequest = vegetableRepository.getOrder(combinedId);    
+        if (orderRequest == null) {
+            throw new Exception("Order with ID " + combinedId + " does not exist.");
+        }
+    
+        List<OrderItem> orders = orderRequest.getOrders();
+        for (OrderItem order : orders) {
+            vegetableRepository.increaseQuantity(order.getId(), order.getQuantity());
+        }
+    
+        vegetableRepository.removeOrder(combinedId);
+    }
+    
+
     @PostMapping(API_OPENING_STRING+"/order")
-    public ResponseEntity<?> orderVegetables(@RequestBody OrderRequest orderRequest) {
+    public ResponseEntity<?> orderVegetables(
+        @RequestBody OrderRequest orderRequest,
+        @RequestHeader("broker") String broker) {
         List<OrderItem> orders = orderRequest.getOrders();
         List<EntityModel<Vegetable>> vegetableEntityModels = new ArrayList<>();
 
         try {
+            if (broker == null || broker.isEmpty()) {
+                throw new MissingBrokerHeaderException();
+            }
             if (!orderRequest.areOrdersUnique()){
                 throw new Exception("Order ids are not unique");
             }
@@ -95,6 +117,12 @@ public class VegetableRestController {
                     throw new FailedDecreasingQuantityException(veg.getId(), order.getQuantity());
                 }
             }
+            
+            // Get the stringid for the map
+            String orderIdString = String.valueOf(orderRequest.getOrderRequestId());
+            String combinedId = broker + "/" + orderIdString;
+            // Add order request to map<id, orderrequest>
+            vegetableRepository.addOrder(combinedId, orderRequest);
 
             // Actually changing it if it is okay
             for (OrderItem order : orders) {
@@ -107,7 +135,7 @@ public class VegetableRestController {
 
             return ResponseEntity.ok().body(CollectionModel.of(vegetableEntityModels,
                     linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel(),
-                    linkTo(methodOn(VegetableRestController.class).orderVegetables(null))
+                    linkTo(methodOn(VegetableRestController.class).orderVegetables(null, null))
                             .withSelfRel()
                             .withType("POST")
                             .withTitle("To order")
@@ -118,6 +146,21 @@ public class VegetableRestController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Another error occurred: " + e.getMessage());
         }
     }
+
+    @GetMapping(API_OPENING_STRING + "/removeOrder/{id}")
+    public ResponseEntity<?> removeOrder(
+        @PathVariable int id,
+        @RequestHeader("broker") String broker) {
+    try {
+        if (broker == null || broker.isEmpty()) {
+            throw new MissingBrokerHeaderException();
+        }
+        addQuantity(id, broker);
+        return ResponseEntity.ok().body("Order removed and quantities increased successfully.");
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+    }
+}
 
     @PostMapping(API_OPENING_STRING+"/addProduct")
     public ResponseEntity<EntityModel<Vegetable>> addProduct(@RequestBody Vegetable product) {

@@ -1,3 +1,3 @@
 curl -X GET \
-  http://localhost:8082/vegetables \
+  http://localhost:8081/animalprods \
   -H 'Api-Key: rasimrasim14'

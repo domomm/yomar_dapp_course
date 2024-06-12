@@ -9,3 +9,4 @@
 /home/yeskaomar/Documents/distributed_applications/git/project-rest-1/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/controllers/security/ApiKeyAuthentication.java
 /home/yeskaomar/Documents/distributed_applications/git/project-rest-1/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/controllers/VegetableRestController.java
 /home/yeskaomar/Documents/distributed_applications/git/project-rest-1/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/domain/VegetableRepository.java
+/home/yeskaomar/Documents/distributed_applications/git/project-rest-1/dsgt-rest/src/main/java/be/kuleuven/foodrestservice/exceptions/MissingBrokerHeaderException.java

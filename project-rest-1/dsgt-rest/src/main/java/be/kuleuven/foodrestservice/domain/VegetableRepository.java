@@ -1,6 +1,8 @@
 package be.kuleuven.foodrestservice.domain;
 
 import be.kuleuven.foodrestservice.controllers.VegetableRestController;
+import be.kuleuven.foodrestservice.controllers.orders.OrderRequest;
+
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -10,6 +12,7 @@ import java.util.*;
 @Component
 public class VegetableRepository {
         private static final Map<Integer, Vegetable> vegetables = new HashMap<>();
+        private Map<String, OrderRequest> orderMap = new HashMap<>();
         private static int idGenerator =0;
 
         @PostConstruct
@@ -107,12 +110,77 @@ public class VegetableRepository {
             }
         }
 
+        public Optional<Vegetable> increaseQuantity(int id, int quantity) {
+            Optional<Vegetable> vegOptional = findVegetable(id);
+            if (vegOptional.isPresent()) {
+                Vegetable veg = vegOptional.get();
+                veg.setQuantity(veg.getQuantity() + quantity);
+                return Optional.of(veg);
+            }
+            return Optional.empty();
+        }
+
+        public void addOrder(String id, OrderRequest OR) throws Exception {
+            if (orderMap.containsKey(id)) {
+                throw new Exception("Order with ID " + id + " already exists.");
+            }
+            orderMap.put(id, OR);
+            System.out.printf("Order of id %s has been succesfully added", id);
+        }
+    
+        // Function to remove an order from the map
+        public void removeOrder(String id) throws Exception {
+            if (!orderMap.containsKey(id)) {
+                throw new Exception("Order with ID " + id + " does not exist.");
+            }
+            orderMap.remove(id);
+            System.out.printf("Order of id %s has been succesfully removed", id);
+        }
+
+        public OrderRequest getOrder(String id) throws Exception{
+            if (!orderMap.containsKey(id)){
+                throw new Exception("Order with ID " + id + " does not exist.");
+            }
+            return orderMap.get(id);
+        }
+
         public int generateId(){
             return idGenerator++;
         }
 
         public void deleteProduct(int id){
             vegetables.remove(id);
+        }
+        //main just for testing
+        public static void main(String[] args) {
+            try {
+                VegetableRepository orderManager = new VegetableRepository();
+                OrderRequest orderRequest = new OrderRequest();
+    
+                // Add an order
+                orderManager.addOrder("order1", orderRequest);
+                System.out.println("Order added successfully.");
+    
+                // Attempt to add an order with the same ID
+                try {
+                    orderManager.addOrder("order1", orderRequest);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage()); // Expected to throw an exception
+                }
+    
+                // Remove the order
+                orderManager.removeOrder("order1");
+                System.out.println("Order removed successfully.");
+    
+                // Attempt to remove a non-existing order
+                try {
+                    orderManager.removeOrder("order1");
+                } catch (Exception e) {
+                    System.out.println(e.getMessage()); // Expected to throw an exception
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
 }
