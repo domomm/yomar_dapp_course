@@ -93,7 +93,7 @@ public class VegetableRepository {
             return vegetables.get(veg.getId());
         }
 
-        public Optional<Vegetable> decreaseQuantity(int id, int amount) {
+        public synchronized Optional<Vegetable> decreaseQuantity(int id, int amount) {
             Optional<Vegetable> vegetableOptional = findVegetable(id);
             if (vegetableOptional.isPresent()) {
                 Vegetable veg = vegetableOptional.get();
@@ -110,7 +110,7 @@ public class VegetableRepository {
             }
         }
 
-        public Optional<Vegetable> increaseQuantity(int id, int quantity) {
+        public synchronized Optional<Vegetable> increaseQuantity(int id, int quantity) {
             Optional<Vegetable> vegOptional = findVegetable(id);
             if (vegOptional.isPresent()) {
                 Vegetable veg = vegOptional.get();
@@ -125,7 +125,7 @@ public class VegetableRepository {
                 throw new Exception("Order with ID " + id + " already exists.");
             }
             orderMap.put(id, OR);
-            System.out.printf("Order of id %s has been succesfully added", id);
+            System.out.printf("Order of id %s has been succesfully added \n", id);
         }
     
         // Function to remove an order from the map
@@ -134,7 +134,7 @@ public class VegetableRepository {
                 throw new Exception("Order with ID " + id + " does not exist.");
             }
             orderMap.remove(id);
-            System.out.printf("Order of id %s has been succesfully removed", id);
+            System.out.printf("Order of id %s has been succesfully removed \n", id);
         }
 
         public OrderRequest getOrder(String id) throws Exception{

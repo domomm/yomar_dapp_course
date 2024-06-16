@@ -24,7 +24,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 public class VegetableRestController {
 
     private final VegetableRepository vegetableRepository;
-    public static final String API_OPENING_STRING = "/animalprods";
+    public static final String API_OPENING_STRING = "/generalstore";
     private final Link orderLink = linkTo(methodOn(VegetableRestController.class).orderVegetables(null, null))
             .withSelfRel()
             .withType("POST")
@@ -62,7 +62,11 @@ public class VegetableRestController {
                         .withSelfRel()
                         .withType("POST")
                         .withTitle("To order")
-                        .withMedia("JSON"));
+                        .withMedia("JSON"),
+                linkTo(methodOn(VegetableRestController.class).removeOrder(null, null))
+                    .withSelfRel()
+                    .withType("GET")
+                    .withTitle("To remove order"));
     }
 
     @GetMapping(API_OPENING_STRING+"/decreaseQuantity/{id}/{quantity}")
@@ -79,7 +83,7 @@ public class VegetableRestController {
 
     }
 
-    private void addQuantity(int id, String broker) throws Exception {
+    private void addQuantity(String id, String broker) throws Exception {
         String combinedId = broker + "/" + id;
         OrderRequest orderRequest = vegetableRepository.getOrder(combinedId);    
         if (orderRequest == null) {
@@ -109,29 +113,35 @@ public class VegetableRestController {
             if (!orderRequest.areOrdersUnique()){
                 throw new Exception("Order ids are not unique");
             }
-            // Check if everything is okay
-            for (OrderItem order : orders) {
-                Vegetable veg = vegetableRepository.findVegetable(order.getId())
-                        .orElseThrow(VegetableNotFoundException::new);
-                if (veg.getQuantity() < order.getQuantity()) {
-                    throw new FailedDecreasingQuantityException(veg.getId(), order.getQuantity());
-                }
-            }
-            
-            // Get the stringid for the map
-            String orderIdString = String.valueOf(orderRequest.getOrderRequestId());
-            String combinedId = broker + "/" + orderIdString;
-            // Add order request to map<id, orderrequest>
-            vegetableRepository.addOrder(combinedId, orderRequest);
 
-            // Actually changing it if it is okay
-            for (OrderItem order : orders) {
-                vegetableRepository.decreaseQuantity(order.getId(), order.getQuantity());
-                Vegetable v = vegetableRepository.findVegetable(order.getId())
-                        .orElseThrow(VegetableNotFoundException::new);
-                EntityModel<Vegetable> em = vegetableToEntityModel(v.getId(), v);
-                vegetableEntityModels.add(em);
-            }
+            synchronized (vegetableRepository){
+                    // Check if everything is okay
+                for (OrderItem order : orders) {
+                    Vegetable veg = vegetableRepository.findVegetable(order.getId())
+                            .orElseThrow(VegetableNotFoundException::new);
+                    if (veg.getQuantity() < order.getQuantity()) {
+                        throw new FailedDecreasingQuantityException(veg.getId(), order.getQuantity());
+                    }
+                }
+                
+                // Get the stringid for the map
+                String orderIdString = orderRequest.getOrderRequestId();
+                if (orderIdString == null || orderIdString == "null" || orderIdString.isEmpty()){
+                    throw new Exception("Order request id is null");
+                }
+                String combinedId = broker + "/" + orderIdString;
+                // Add order request to map<id, orderrequest>
+                vegetableRepository.addOrder(combinedId, orderRequest);
+
+                // Actually changing it if it is okay
+                for (OrderItem order : orders) {
+                    vegetableRepository.decreaseQuantity(order.getId(), order.getQuantity());
+                    Vegetable v = vegetableRepository.findVegetable(order.getId())
+                            .orElseThrow(VegetableNotFoundException::new);
+                    EntityModel<Vegetable> em = vegetableToEntityModel(v.getId(), v);
+                    vegetableEntityModels.add(em);
+                }
+            }            
 
             return ResponseEntity.ok().body(CollectionModel.of(vegetableEntityModels,
                     linkTo(methodOn(VegetableRestController.class).getVegetables()).withSelfRel(),
@@ -139,7 +149,12 @@ public class VegetableRestController {
                             .withSelfRel()
                             .withType("POST")
                             .withTitle("To order")
-                            .withMedia("JSON")));
+                            .withMedia("JSON"),
+                    linkTo(methodOn(VegetableRestController.class).removeOrder(null, null))
+                        .withSelfRel()
+                        .withType("GET")
+                        .withTitle("To remove order")
+                            ));
         } catch (VegetableNotFoundException | FailedDecreasingQuantityException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An exception occured: " + e.getMessage());
         } catch (Exception e) {
@@ -149,7 +164,7 @@ public class VegetableRestController {
 
     @GetMapping(API_OPENING_STRING + "/removeOrder/{id}")
     public ResponseEntity<?> removeOrder(
-        @PathVariable int id,
+        @PathVariable String id,
         @RequestHeader("broker") String broker) {
     try {
         if (broker == null || broker.isEmpty()) {

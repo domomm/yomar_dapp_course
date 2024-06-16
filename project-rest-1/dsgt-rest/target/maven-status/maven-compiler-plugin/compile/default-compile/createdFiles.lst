@@ -3,6 +3,7 @@ be/kuleuven/foodrestservice/controllers/security/ApiKeyAuthenticationFilter.clas
 be/kuleuven/foodrestservice/VegetableRestServiceApplication.class
 be/kuleuven/foodrestservice/controllers/VegetableRestController.class
 be/kuleuven/foodrestservice/domain/VegetableRepository.class
+be/kuleuven/foodrestservice/exceptions/MissingBrokerHeaderException.class
 be/kuleuven/foodrestservice/controllers/orders/OrderRequest.class
 be/kuleuven/foodrestservice/exceptions/VegetableNotFoundException.class
 be/kuleuven/foodrestservice/domain/Vegetable.class
